@@ -23,8 +23,7 @@ class RedisClient {
   async get(key) {
     try {
       return await this.getAsync(key);
-    }
-    catch (error) {
+    } catch (error) {
       throw new Error('Error reading from redis:', error);
     }
   }
