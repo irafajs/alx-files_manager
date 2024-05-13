@@ -1,5 +1,5 @@
-import redisClient from '../utils/redis.js';
-import dbClient from '../utils/db.js';
+import redisClient from '../utils/redis';
+import dbClient from '../utils/db';
 
 const AppController = {
   async getStatus(req, res) {
@@ -22,7 +22,7 @@ const AppController = {
       console.error('Error getting stats:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
-  }
+  },
 };
 
 export default AppController;
