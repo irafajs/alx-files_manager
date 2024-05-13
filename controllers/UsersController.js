@@ -35,14 +35,12 @@ const UsersController = {
   async getMe(req, res) {
     try {
       const token = req.headers['x-token'];
-      console.log(token);
       if (!token) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
       const key = `auth_${token}`;
       const userId = await redisClient.get(key);
-      console.log(userId);
 
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
