@@ -12,6 +12,8 @@ class DBClient {
     this.client.connect((err) => {
       if (err) {
         console.error('MongoDB connection error:', err);
+      } else {
+        this.db = this.client.db(database);
       }
     });
   }

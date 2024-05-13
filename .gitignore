@@ -1,5 +1,5 @@
 autopush
-main/
+*main*
 node_modules
 stash/
 pushauto
