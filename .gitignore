@@ -3,3 +3,4 @@ autopush
 node_modules
 stash/
 pushauto
+image_upload.py
