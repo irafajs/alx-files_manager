@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
@@ -24,6 +25,9 @@ const FilesController = {
 
       const key = `auth_${token}`;
       const userId = await redisClient.get(key);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
       if (!name) {
         return res.status(400).json({ error: 'Missing name' });
@@ -36,7 +40,7 @@ const FilesController = {
       }
 
       if (parentId !== '0') {
-        const parentFile = await dbClient.db.collection('files').findOne({ _id: parentId });
+        const parentFile = await dbClient.db.collection('files').findOne({ _id: ObjectId(parentId) });
         if (!parentFile) {
           return res.status(400).json({ error: 'Parent not found' });
         }
@@ -53,8 +57,10 @@ const FilesController = {
         fs.writeFileSync(localPath, fileData);
       }
 
+      const objectIdUserId = ObjectId(userId);
+
       const newFile = {
-        userId,
+        userId: objectIdUserId,
         name,
         type,
         parentId,
