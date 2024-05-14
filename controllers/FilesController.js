@@ -64,14 +64,22 @@ const FilesController = {
         parentIdObjectId = ObjectId(parentId);
       }
 
+      let localPathToSave = null;
+
+      if (type !== 'folder') {
+        localPathToSave = localPath;
+      }
       const newFile = {
         userId: objectIdUserId,
         name,
         type,
         parentId: parentIdObjectId,
         isPublic,
-        localPath: type === 'folder' ? null : localPath,
       };
+
+      if (localPathToSave !== null) {
+        newFile.localPath = localPathToSave;
+      }
 
       const result = await dbClient.db.collection('files').insertOne(newFile);
       newFile.id = result.insertedId;
