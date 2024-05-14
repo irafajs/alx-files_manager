@@ -13,5 +13,7 @@ router.post('/users', UsersController.postNew);
 router.get('/status', AppController.getStatus);
 router.get('/stats', AppController.getStats);
 router.post('/files', FilesController.postUpload);
+router.get('/files', FilesController.getIndex);
+router.get('/files/:id', FilesController.getShow);
 
 export default router;

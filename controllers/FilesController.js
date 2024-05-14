@@ -59,11 +59,16 @@ const FilesController = {
 
       const objectIdUserId = ObjectId(userId);
 
+      let parentIdObjectId = parentId;
+      if (parentId !== '0') {
+        parentIdObjectId = ObjectId(parentId);
+      }
+
       const newFile = {
         userId: objectIdUserId,
         name,
         type,
-        parentId,
+        parentId: parentIdObjectId,
         isPublic,
         localPath: type === 'folder' ? null : localPath,
       };
@@ -76,6 +81,68 @@ const FilesController = {
       return res.status(201).json(response);
     } catch (error) {
       console.error('Error uploading file:', error);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  },
+
+  async getShow(req, res) {
+    try {
+      const token = req.headers['x-token'];
+      if (!token) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const key = `auth_${token}`;
+      const userId = await redisClient.get(key);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const fileId = req.params.id;
+      const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(fileId), userId });
+
+      if (!file) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+
+      return res.status(200).json(file);
+    } catch (error) {
+      console.error('Error retrieving file:', error);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  },
+
+  async getIndex(req, res) {
+    try {
+      const token = req.headers['x-token'];
+      if (!token) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const key = `auth_${token}`;
+      const userId = await redisClient.get(key);
+
+      console.log(userId);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const parentId = req.query.parentId || '0';
+      const page = parseInt(req.query.page, 10) || 0;
+      const perPage = 20;
+      const skip = page * perPage;
+
+      const files = await dbClient.db.collection('files')
+        .find({ parentId, userId })
+        .skip(skip)
+        .limit(perPage)
+        .toArray();
+
+      console.log(files);
+
+      return res.status(200).json(files);
+    } catch (error) {
+      console.error('Error retrieving files:', error);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   },
