@@ -65,7 +65,7 @@ const FilesController = {
       const result = await dbClient.db.collection('files').insertOne(newFile);
       newFile.id = result.insertedId;
 
-      const { localPath: excludedLocalPath, _id: excluded_id, ...response } = newFile;
+      const { localPath: excludedLocalPath, _id: excludedId, ...response } = newFile;
 
       return res.status(201).json(response);
     } catch (error) {
