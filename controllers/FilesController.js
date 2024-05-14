@@ -130,25 +130,23 @@ const FilesController = {
       const key = `auth_${token}`;
       const userIdPlain = await redisClient.get(key);
 
-      const userObj = { userId : ObjectId(userIdPlain) };
-
       if (!userIdPlain) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
       const parentId = req.query.parentId !== undefined && req.query.parentId !== '0' ? req.query.parentId : null;
-      console.log(parentId);
       const page = parseInt(req.query.page, 10) || 0;
       const perPage = 20;
       const skip = page * perPage;
-      const query = parentId ? { userId: ObjectId(userIdPlain), parentId: ObjectId(parentId) } : { userId: ObjectId(userIdPlain) };
+      const query = parentId
+        ? { userId: ObjectId(userIdPlain), parentId: ObjectId(parentId) }
+        : { userId: ObjectId(userIdPlain) };
 
       const files = await dbClient.db.collection('files')
         .find(query)
         .skip(skip)
         .limit(perPage)
         .toArray();
-
 
       return res.status(200).json(files);
     } catch (error) {
