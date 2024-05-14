@@ -107,7 +107,7 @@ const FilesController = {
       }
 
       const fileId = req.params.id;
-      const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(fileId), userId });
+      const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(fileId), userId: ObjectId(userId) });
 
       if (!file) {
         return res.status(404).json({ error: 'Not found' });
@@ -128,25 +128,27 @@ const FilesController = {
       }
 
       const key = `auth_${token}`;
-      const userId = await redisClient.get(key);
+      const userIdPlain = await redisClient.get(key);
 
-      console.log(userId);
-      if (!userId) {
+      const userObj = { userId : ObjectId(userIdPlain) };
+
+      if (!userIdPlain) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      const parentId = req.query.parentId || '0';
+      const parentId = req.query.parentId !== undefined && req.query.parentId !== '0' ? req.query.parentId : null;
+      console.log(parentId);
       const page = parseInt(req.query.page, 10) || 0;
       const perPage = 20;
       const skip = page * perPage;
+      const query = parentId ? { userId: ObjectId(userIdPlain), parentId: ObjectId(parentId) } : { userId: ObjectId(userIdPlain) };
 
       const files = await dbClient.db.collection('files')
-        .find({ parentId, userId })
+        .find(query)
         .skip(skip)
         .limit(perPage)
         .toArray();
 
-      console.log(files);
 
       return res.status(200).json(files);
     } catch (error) {
