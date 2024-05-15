@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
+import * as mime from 'mime-types';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
@@ -209,6 +210,41 @@ const FilesController = {
       return res.status(200).json(file);
     } catch (error) {
       console.error('Error unpublishing file:', error);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  },
+
+  async getFile(req, res) {
+    try {
+      const token = req.headers['x-token'];
+
+      const key = `auth_${token}`;
+      const userId = await redisClient.get(key);
+
+      const fileId = req.params.id;
+      const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(fileId) });
+      if (!file) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+
+      if (!file.isPublic && file.userId.toString() !== userId) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+
+      if (file.type === 'folder') {
+        return res.status(400).json({ error: 'A folder doesn\'t have content' });
+      }
+
+      if (!file.localPath || !fs.existsSync(file.localPath)) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+
+      const mimeType = mime.lookup(file.name);
+      res.set('Content-Type', mimeType);
+      const fileContent = fs.readFileSync(file.localPath);
+      return res.send(fileContent);
+    } catch (error) {
+      console.error('Error retrieving file data:', error);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   },
