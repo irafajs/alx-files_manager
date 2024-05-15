@@ -4,6 +4,8 @@ import { ObjectId } from 'mongodb';
 import * as mime from 'mime-types';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
+import Queue from 'bull';
+import fileQueue from '../worker';
 
 const tmppath = '/tmp/files_manager';
 if (!fs.existsSync(tmppath)) {
@@ -56,6 +58,7 @@ const FilesController = {
         const fileId = uuidv4();
         localPath = `${FOLDER_PATH}/${fileId}`;
         fs.writeFileSync(localPath, fileData);
+        fileQueue.add({ userId, fileId });
       }
 
       const objectIdUserId = ObjectId(userId);
