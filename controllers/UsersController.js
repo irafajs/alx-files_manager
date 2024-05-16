@@ -17,7 +17,7 @@ const UsersController = {
 
       const userExists = await dbClient.db.collection('users').findOne({ email });
       if (userExists) {
-        return res.status(400).json({ error: 'Already exists' });
+        return res.status(400).json({ error: 'Already exist' });
       }
 
       const hashedPassword = crypto.createHash('sha1').update(password).digest('hex');
